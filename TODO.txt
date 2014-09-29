@@ -1,0 +1,9 @@
+BACKUP python code
+        #data = [expovariate(rate) for i in range(10000)]
+        #print data
+        #print 'expovariate average with count=%d: ' % i, average(data)
+#        print [random.randrange(5) for i in range(10)]
+
+TODO
+convert vector adjacency vector to adjacency matrix then to a graph object
+convert random topology and tree topology to python
