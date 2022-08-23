@@ -6,12 +6,13 @@ by Cesar Marcondes (marcondes@dc.ufscar.br)
 Example: python topogen.py parking 5 0 1000 15 0 40 p2p
 """
 
-import sys, argparse, random, os
+import sys, random, os
 from random import expovariate
 from numpy import average
+import argparse
 
 parser = argparse.ArgumentParser(
-    description='tcp evaluation suite: topology generator', version='1.0')
+    description='tcp evaluation suite: topology generator')
 parser.add_argument('topology', action="store",
                     help='topology type, ie. parking')
 parser.add_argument('nw_size', action="store",
@@ -29,7 +30,6 @@ parser.add_argument('sflows', action="store",
                     help='short lived flows', type=int)
 parser.add_argument('traffic', action="store",
                     help='traffic pattern (i.e. p2p or client/server)')
-
 arguments = parser.parse_args()
 
 #open files
