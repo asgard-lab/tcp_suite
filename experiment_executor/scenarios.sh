@@ -1,7 +1,7 @@
-prot=$1
-version="1 2 3 4 5 6 7"
+prot=experiment01
+combination="1 2 3 4 5 6 7"
 
-for i in $version
+for i in $combination
 do
 	mkdir data
 	mkdir data4
@@ -12,14 +12,14 @@ do
 
 	while [ 1 ] 
 	do 
-	    test=`ps -ef | grep ns | wc -l`
+	    test=`ps -ef | grep script.tcl | wc -l`
 
-	    if [ "$test" -ge 3 ]; then
+	    if [ "$test" -ge 2 ]; then
 		let counter=counter+1
 		echo "minutes = $counter"
 		sleep 60
 	    else 
-		echo "experiment $exp done in $counter minutes" | mail -s "experiment $name" youremailhere@youdomain.edu
+		echo "experiment $exp done in $counter minutes" | mail -s "experiment $name" cmarcond06@gmail.com
 		break;
 	    fi
 	done

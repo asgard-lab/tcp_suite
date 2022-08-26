@@ -1,5 +1,4 @@
-NSDIR="/home/cesar/ns-allinone-2.31/ns-2.31"
-SAMPLES="1 2 3 4 5 6 7 8 9 10"
+SAMPLES="1 2 3 4 5 6"
 version="1 2 3 4 5 6 7"
 prot1="reno"
 prot2="reno"
@@ -10,7 +9,7 @@ for i in $version
 do
 	for c in $SAMPLES
 	do
-		echo "#!/bin/tcsh" > exp$i-seed$c
+#		echo "#!/bin/tcsh" > exp$i-seed$c
 
 case "$i" in 
      '1') 
@@ -47,7 +46,7 @@ esac
 #		then prot2="reno"
 #		else prot2=$prot1
 #		fi
-		echo $NSDIR"/ns ./script.tcl $c $prot1 $prot2 $buffer $duration" >> exp$i-seed$c
+		echo "ns ./script.tcl $c $prot1 $prot2 $buffer $duration" >> exp$i-seed$c
 		echo "nohup sh ./exp$i-seed$c > exp$i-seed$c.output &" >> submit_batch$i.sh
 	done
 chmod 755 exp$i-seed?

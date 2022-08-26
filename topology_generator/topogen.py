@@ -2,14 +2,24 @@
 
 """
 topogen - tcp evaluation suite
-by Cesar Marcondes (marcondes@dc.ufscar.br)
-Example: python topogen.py parking 5 0 1000 15 0 40 p2p
+by Cesar Marcondes (cmarcondes@ita.br)
+
+Example: python topogen.py parking 5 0 1000 15 40 100 p2p
+
+topology = parking
+backbone size = 5
+backbone outdegree = 0
+backbone bandwidth = 1000 (1Gbps)
+per-link propagation delay = 15 (ms average)
+long-lived flows = 40
+short-lived flows = 100
+traffic pattern p2p or c/s = p2p
 """
 
-import sys, random, os
-from random import expovariate
-from numpy import average
 import argparse
+#import sys, random, os
+#from random import expovariate
+#from numpy import average
 
 parser = argparse.ArgumentParser(
     description='tcp evaluation suite: topology generator')
@@ -33,7 +43,7 @@ parser.add_argument('traffic', action="store",
 arguments = parser.parse_args()
 
 #open files
-topology_f = open('model-topology', 'w')
+""" topology_f = open('model-topology', 'w')
 flow_f = open('model-flow', 'w')
 
 random.seed()
@@ -137,4 +147,4 @@ if arguments.topology == "parking":
 if arguments.traffic == "cs":
     csflows()
 if arguments.traffic == "p2p":
-    p2pflows()
+    p2pflows() """
