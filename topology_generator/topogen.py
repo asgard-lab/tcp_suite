@@ -1,26 +1,27 @@
 #!/usr/bin/env python
-
 """
 topogen - tcp evaluation suite
 by Cesar Marcondes (cmarcondes@ita.br)
 
-Example: python topogen.py parking 5 0 1000 15 40 100 p2p
+Example: python topogen.py parking 5 0 1000 15 40 100 p2p 6
 
 topology = parking
 backbone size = 5
 backbone outdegree = 0
 backbone bandwidth = 1000 (1Gbps)
 per-link propagation delay = 15 (ms average)
-long-lived flows = 40
 short-lived flows = 100
+long-lived flows = 40
 traffic pattern p2p or c/s = p2p
+seeds = 6
 """
 
-import argparse
+import argparse, os
 #import sys, random, os
 #from random import expovariate
 #from numpy import average
 
+#### READ ARGUMENTS ############################
 parser = argparse.ArgumentParser(
     description='tcp evaluation suite: topology generator')
 parser.add_argument('topology', action="store",
@@ -34,20 +35,54 @@ parser.add_argument('bw', action="store",
                     help='core bandwidth capacity', type=int)
 parser.add_argument('delay', action="store",
                     help='randomized per-link delay', type=int)
-parser.add_argument('lflows', action="store",
-                    help='long lived flows', type=int)
 parser.add_argument('sflows', action="store",
                     help='short lived flows', type=int)
+parser.add_argument('lflows', action="store",
+                    help='long lived flows', type=int)
 parser.add_argument('traffic', action="store",
                     help='traffic pattern (i.e. p2p or client/server)')
 arguments = parser.parse_args()
 
-#open files
-""" topology_f = open('model-topology', 'w')
+### OPEN FILES #################################
+os.mkdir("model")
+topology_f = open('model-topology', 'w')
 flow_f = open('model-flow', 'w')
 
-random.seed()
+### CREATE TOPOLOGY ###
+used = {}
 
+def printlink (i, j, bw, delay):
+    aux = repr(i), repr(j), repr(bw) + "Mb", "%e"%(delay) + "ms"
+    str1 = ' '.join(str(e) for e in aux)
+    print(str1 + os.linesep)
+    #topology_f.write(str1 + os.linesep)
+
+def createlink(i, j, bw, delay):
+    used[i*arguments.nw_size + j] = delay
+    used[j*arguments.nw_size + i] = delay
+    printlink(i, j, bw, delay) 
+
+class TestStringMethods(unittest.TestCase):
+
+    def test_upper(self):
+        self.assertEqual('foo'.upper(), 'FOO')
+
+    def test_isupper(self):
+        self.assertTrue('FOO'.isupper())
+        self.assertFalse('Foo'.isupper())
+
+    def test_split(self):
+        s = 'hello world'
+        self.assertEqual(s.split(), ['hello', 'world'])
+        # check that s.split fails when the separator is not a string
+        with self.assertRaises(TypeError):
+            s.split(2)
+
+if __name__ == '__main__':
+    unittest.main()
+
+""" 
+random.seed()
 # global variable used (vectorized adjancecy list)
 used = []
 hopcnt = 0
@@ -60,13 +95,7 @@ def printflow (snode, dnode, hopcount, shortflow):
     str1 = ' '.join(str(e) for e in aux)
     flow_f.write(str1 + os.linesep)
 
-def printlink (i, j, bw, delay):
-    aux = repr(i), repr(j), repr(bw) + "Mb", "%e"%(delay) + "ms"
-    str1 = ' '.join(str(e) for e in aux)
-    topology_f.write(str1 + os.linesep)
-
 def createlink(i, j, bw, delay):
-    global used
     used[i*arguments.nw_size + j] = delay
     used[j*arguments.nw_size + i] = delay
     printlink(i, j, bw, delay) 
