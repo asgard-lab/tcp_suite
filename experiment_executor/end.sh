@@ -1,8 +1,8 @@
 mkdir data5
 gzip *.output
 mv *.output.gz data5
-mkdir exp3
-mv data* exp3
+mkdir exp6
+mv data* exp6
 mkdir data
 mkdir data4
 

@@ -16,95 +16,30 @@ traffic pattern p2p or c/s = p2p
 seeds = 6
 """
 
-import argparse, os
-#import sys, random, os
-#from random import expovariate
-#from numpy import average
+import argparse, os, random
+from random import expovariate
 
-#### READ ARGUMENTS ############################
-parser = argparse.ArgumentParser(
-    description='tcp evaluation suite: topology generator')
-parser.add_argument('topology', action="store",
-                    help='topology type, ie. parking')
-parser.add_argument('nw_size', action="store",
-                    help='network core size, ie. 5 bottleneck routers',
-                    type=int)
-parser.add_argument('degree', action="store",
-                    help='network core outdegree', type=int)
-parser.add_argument('bw', action="store",
-                    help='core bandwidth capacity', type=int)
-parser.add_argument('delay', action="store",
-                    help='randomized per-link delay', type=int)
-parser.add_argument('sflows', action="store",
-                    help='short lived flows', type=int)
-parser.add_argument('lflows', action="store",
-                    help='long lived flows', type=int)
-parser.add_argument('traffic', action="store",
-                    help='traffic pattern (i.e. p2p or client/server)')
-arguments = parser.parse_args()
-
-### OPEN FILES #################################
-os.mkdir("model")
-topology_f = open('model-topology', 'w')
-flow_f = open('model-flow', 'w')
-
-### CREATE TOPOLOGY ###
-used = {}
+used = []
+hopcnt = 0
+topology_f = None
+flow_f = None
 
 def printlink (i, j, bw, delay):
     aux = repr(i), repr(j), repr(bw) + "Mb", "%e"%(delay) + "ms"
-    str1 = ' '.join(str(e) for e in aux)
-    print(str1 + os.linesep)
-    #topology_f.write(str1 + os.linesep)
-
-def createlink(i, j, bw, delay):
-    used[i*arguments.nw_size + j] = delay
-    used[j*arguments.nw_size + i] = delay
-    printlink(i, j, bw, delay) 
-
-class TestStringMethods(unittest.TestCase):
-
-    def test_upper(self):
-        self.assertEqual('foo'.upper(), 'FOO')
-
-    def test_isupper(self):
-        self.assertTrue('FOO'.isupper())
-        self.assertFalse('Foo'.isupper())
-
-    def test_split(self):
-        s = 'hello world'
-        self.assertEqual(s.split(), ['hello', 'world'])
-        # check that s.split fails when the separator is not a string
-        with self.assertRaises(TypeError):
-            s.split(2)
-
-if __name__ == '__main__':
-    unittest.main()
-
-""" 
-random.seed()
-# global variable used (vectorized adjancecy list)
-used = []
-hopcnt = 0
-
-for i in range(0, (arguments.nw_size * arguments.nw_size)):
-    used.append(0)
+    txt = ' '.join(str(e) for e in aux)
+    #print(txt)
+    topology_f.write(txt + os.linesep)
 
 def printflow (snode, dnode, hopcount, shortflow):
     aux = repr(snode), repr(dnode), repr(hopcount), shortflow
-    str1 = ' '.join(str(e) for e in aux)
-    flow_f.write(str1 + os.linesep)
+    txt = ' '.join(str(e) for e in aux)
+    #print(txt)
+    flow_f.write(txt + os.linesep)
 
 def createlink(i, j, bw, delay):
     used[i*arguments.nw_size + j] = delay
     used[j*arguments.nw_size + i] = delay
     printlink(i, j, bw, delay) 
-
-'''
-parking-lot network fuction
-use pure random exponential variable to generate link delays
-it could be possible in the future pass a random seed, using random.seed(n)
-'''
 
 def parking():
     for i in range(0, arguments.nw_size-1):
@@ -112,7 +47,6 @@ def parking():
         delay = expovariate(rate)
         createlink(i, i+1, arguments.bw, delay)
 
-##count hop count within a flow
 def counthops(src, dest):
     global hopcnt, used
     hopcnt = 0
@@ -136,16 +70,30 @@ def counthops(src, dest):
     
 def setuplinks(i, src, dest):
     rate = 1 / float(arguments.delay)
+    random.seed()
     delay = expovariate(rate)
     srcnd = arguments.nw_size + i * 2
     destnd = arguments.nw_size + i * 2 + 1
     printlink(srcnd, src, arguments.bw, delay)
-    delay = expovariate(rate) #second delay sample
     printlink(destnd, dest, arguments.bw, delay)
+    print("counting flows {}".format(i))
     if (i<arguments.lflows):
-        printflow (srcnd, destnd, hopcnt, 0)
+        print("long flows counting flows {}".format(i))
+        printflow (srcnd, destnd, hopcnt+2, 0)
     else:
-        printflow (srcnd, destnd, hopcnt, 1)
+        print("short flows counting flows {}".format(i))
+        printflow (srcnd, destnd, hopcnt+2, 1)
+
+def p2pflows():
+    flows = arguments.sflows + arguments.lflows
+    for i in range(0, flows):
+        src = int(random.random() * arguments.nw_size)
+        dest = int(random.random() * arguments.nw_size)
+        while (src == dest):
+            src = int(random.random() * arguments.nw_size)
+            dest = int(random.random() * arguments.nw_size)
+        counthops(src, dest)
+        setuplinks(i, src, dest)
 
 def csflows():
     flows = arguments.sflows + arguments.lflows
@@ -158,22 +106,46 @@ def csflows():
             dest = int(random.random() * arguments.nw_size) % 10 * 10
         counthops(src, dest)
         setuplinks(i, src, dest)
-    
-def p2pflows():
-    flows = arguments.sflows + arguments.lflows
-    for i in range(0, flows):
-        src = int(random.random() * arguments.nw_size)
-        dest = int(random.random() * arguments.nw_size)
-        while (src == dest):
-            src = int(random.random() * arguments.nw_size)
-            dest = int(random.random() * arguments.nw_size)
-        # count hops and setup links
-        counthops(src, dest)
-        setuplinks(i, src, dest)
 
-if arguments.topology == "parking":
-    parking()
-if arguments.traffic == "cs":
-    csflows()
-if arguments.traffic == "p2p":
-    p2pflows() """
+def main(arguments):
+    global topology_f, flow_f
+    random.seed()
+
+    # create model files
+    if not os.path.isdir("model"):
+        os.mkdir("model")
+    topology_f = open('model-topology', 'w')
+    flow_f = open('model-flow', 'w')
+
+    for i in range(0, (arguments.nw_size * arguments.nw_size)):
+        used.append(0)
+
+    if arguments.topology == "parking":
+        parking()
+    if arguments.traffic == "cs":
+        csflows()
+    else:
+        p2pflows()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='tcp evaluation suite: topology generator')
+    parser.add_argument('topology', action="store",
+        help='topology type, ie. parking')
+    parser.add_argument('nw_size', action="store",
+        help='network core size, ie. 5 bottleneck routers',
+        type=int)
+    parser.add_argument('degree', action="store",
+        help='network core outdegree', type=int)
+    parser.add_argument('bw', action="store",
+        help='core bandwidth capacity', type=int)
+    parser.add_argument('delay', action="store",
+        help='randomized per-link delay', type=int)
+    parser.add_argument('lflows', action="store",
+        help='long lived flows', type=int)
+    parser.add_argument('sflows', action="store",
+        help='short lived flows', type=int)
+    parser.add_argument('traffic', action="store",
+        help='traffic pattern (i.e. p2p or client/server)')
+    arguments = parser.parse_args()
+    main(arguments)
